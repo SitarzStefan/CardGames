@@ -12,12 +12,8 @@ public partial class MainWindow : Window
 
     private void Blackjack_Click(object? sender, RoutedEventArgs e)
     {
-        new Window
-        {
-            Title = "Oczko (Blackjack)",
-            Width = 500,
-            Height = 400
-        }.Show();
+        
+        new GameModeWindow().Show();
     }
 
     private void Memory_Click(object? sender, RoutedEventArgs e)

@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CardGames.BlackjackWindow"
-        Width="400"
+        Width="700"
         Height="500"
         Title="Oczko">
 
@@ -18,18 +18,25 @@
                Height="200"/>
 
         <TextBlock Name="PlayerText"
-                   Text="Punkty: 0"
-                   FontSize="20"/>
+                   Text="Gracz 1: 0"
+                   FontSize="18"
+                   HorizontalAlignment="Center"/>
+
+        <TextBlock Name="BotText"
+                   Text=""
+                   FontSize="18"
+                   HorizontalAlignment="Center"/>
+
+        <TextBlock Name="ResultText"
+                   Text=""
+                   FontSize="22"
+                   HorizontalAlignment="Center"/>
 
         <Button Content="Dobierz karte"
                 Click="Hit_Click"/>
 
-        <Button Content="Reset"
-                Click="Reset_Click"/>
-
-        <TextBlock Name="ResultText"
-                   FontSize="22"
-                   HorizontalAlignment="Center"/>
+        <Button Content="STOP"
+                Click="Stop_Click"/>
 
     </StackPanel>
 

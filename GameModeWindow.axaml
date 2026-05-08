@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CardGames.GameModeWindow"
+        Width="300"
+        Height="200"
+        Title="Wybierz tryb">
+
+    <StackPanel HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="10">
+
+        <Button Content="2 Graczy"
+                Click="TwoPlayers_Click"/>
+
+        <Button Content="Gra z botem"
+                Click="Bot_Click"/>
+
+    </StackPanel>
+
+</Window>
