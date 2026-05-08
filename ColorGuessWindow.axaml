@@ -1,0 +1,41 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CardGames.ColorGuessWindow"
+        Width="700"
+        Height="850"
+        Title="Wyżej czy Niżej?"
+        Background="#2C3E50"
+        WindowStartupLocation="CenterScreen">
+
+    <StackPanel Margin="30" Spacing="15" HorizontalAlignment="Center">
+
+        <!-- Nagłówek -->
+        <TextBlock Text="WYŻEJ CZY NIŻEJ?" FontSize="36" FontWeight="ExtraBold" Foreground="#ECF0F1" HorizontalAlignment="Center"/>
+
+        <!-- Przyciski Gry -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20">
+            <Button Name="HigherBtn" Content="WYŻEJ ▲" Width="180" Height="70" FontSize="20" Background="#27AE60" Click="Higher_Click"/>
+            <Button Name="LowerBtn" Content="NIŻEJ ▼" Width="180" Height="70" FontSize="20" Background="#C0392B" Click="Lower_Click"/>
+        </StackPanel>
+
+        <!-- Karta -->
+        <Border BorderBrush="#ECF0F1" BorderThickness="5" CornerRadius="15" Background="White" HorizontalAlignment="Center">
+            <Image Name="CardImage" Width="280" Height="400" Stretch="Uniform"/>
+        </Border>
+
+        <!-- Wyniki -->
+        <Border Background="#34495E" CornerRadius="10" Padding="15">
+            <StackPanel Spacing="5">
+                <TextBlock Name="ResultText" FontSize="18" Foreground="#F1C40F" HorizontalAlignment="Center" TextAlignment="Center"/>
+                <TextBlock Name="ScoreText" Text="Punkty: 0 / 0" FontSize="24" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Przyciski Systemowe -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="15" Margin="0,10,0,0">
+            <Button Content="Zagraj od nowa" Background="#3498DB" Width="150" Click="Restart_Click"/>
+            <Button Content="Wyjdź z gry" Background="#7F8C8D" Width="150" Click="Exit_Click"/>
+        </StackPanel>
+
+    </StackPanel>
+</Window>

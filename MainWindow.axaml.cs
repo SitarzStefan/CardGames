@@ -28,11 +28,12 @@ public partial class MainWindow : Window
 
     private void ThirdGame_Click(object? sender, RoutedEventArgs e)
     {
-        new Window
-        {
-            Title = "Gra nr 3",
-            Width = 500,
-            Height = 400
-        }.Show();
+        ColorGuessWindow window = new ColorGuessWindow();
+        window.Show();
+    }
+    private void ShowHistory_Click(object? sender, RoutedEventArgs e)
+    {
+        var historyWin = new HistoryWindow();
+        historyWin.ShowDialog(this); // Otwiera historiê jako okno modalne
     }
 }

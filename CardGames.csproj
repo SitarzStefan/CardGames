@@ -19,6 +19,15 @@
 		</PackageReference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Compile Update="ColorGuessWindow.axaml.cs">
+	    <DependentUpon>ColorGuessWindow.axaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="HistoryWindow.axaml.cs">
+	    <DependentUpon>HistoryWindow.axaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
   <ItemGroup>
     <None Update="Assets\10_karo.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

@@ -24,10 +24,15 @@
                 Height="60"
                 Click="Memory_Click"/>
 
-        <Button Content="Gra nr 3"
+        <Button Content="Color Guess"
                 Width="250"
                 Height="60"
                 Click="ThirdGame_Click"/>
+    <Button Content="Color Guess"
+            Width="250"
+            Height="60"
+                Click="ShowHistory_Click"/>
+
 
     </StackPanel>
 
