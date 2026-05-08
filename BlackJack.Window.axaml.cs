@@ -10,15 +10,20 @@ public partial class BlackjackWindow : Window
 {
     private Deck deck = null!;
 
-    private int playerScore;
-    private int player2Score;
+    private int playerScore = 0;
+    private int player2Score = 0;
 
     private GameMode mode;
+
     private int currentPlayer = 1;
 
-    private bool isBlocked = false;
+    private bool isGameOver = false;
 
-    // konstruktor dla preview / fallback
+    private double offset = 80;
+
+    private int playerIndex = 0;
+    private int opponentIndex = 0;
+
     public BlackjackWindow()
     {
         InitializeComponent();
@@ -26,7 +31,6 @@ public partial class BlackjackWindow : Window
         StartGame();
     }
 
-    // konstruktor gry
     public BlackjackWindow(GameMode mode)
     {
         InitializeComponent();
@@ -41,54 +45,65 @@ public partial class BlackjackWindow : Window
 
         playerScore = 0;
         player2Score = 0;
+
         currentPlayer = 1;
-        isBlocked = false;
+        isGameOver = false;
+
+        playerIndex = 0;
+        opponentIndex = 0;
+
+        PlayerCardsPanel.Items.Clear();
+        OpponentCardsPanel.Items.Clear();
 
         PlayerText.Text = "Gracz 1: 0";
-        BotText.Text = "";
+        OpponentText.Text = "Gracz 2: 0";
         ResultText.Text = "";
+
+        HitButton.IsEnabled = true;
+
+        // ?? TYLKO TA ZMIANA
+        OpponentTitle.Text = mode == GameMode.Bot ? "BOT" : "GRACZ 2";
     }
 
     private void Hit_Click(object? sender, RoutedEventArgs e)
     {
-        if (isBlocked || deck == null)
+        if (isGameOver)
             return;
 
         var card = deck.Draw();
 
-        if (mode == GameMode.Bot)
-        {
-            playerScore += card.Value;
-            PlayerText.Text = $"Gracz: {playerScore}";
-        }
-        else
+        if (mode == GameMode.TwoPlayers)
         {
             if (currentPlayer == 1)
             {
                 playerScore += card.Value;
                 PlayerText.Text = $"Gracz 1: {playerScore}";
+                AddCard(PlayerCardsPanel, card.ImagePath, ref playerIndex);
             }
             else
             {
                 player2Score += card.Value;
-                PlayerText.Text = $"Gracz 2: {player2Score}";
+                OpponentText.Text = $"Gracz 2: {player2Score}";
+                AddCard(OpponentCardsPanel, card.ImagePath, ref opponentIndex);
             }
         }
-
-        if (File.Exists(card.ImagePath))
+        else
         {
-            using var stream = File.OpenRead(card.ImagePath);
-            PlayerCardImage.Source = new Bitmap(stream);
+            playerScore += card.Value;
+            PlayerText.Text = $"Gracz 1: {playerScore}";
+            AddCard(PlayerCardsPanel, card.ImagePath, ref playerIndex);
         }
 
-        if (playerScore > 33 || player2Score > 33)
+        UpdateCenter(card.ImagePath);
+
+        if (playerScore > 21 || player2Score > 21)
         {
-            isBlocked = true;
-            ResultText.Text = "Przekroczono 33!";
+            isGameOver = true;
+            FinishGame();
         }
     }
 
-    private async void Stop_Click(object? sender, RoutedEventArgs e)
+    private void Stop_Click(object? sender, RoutedEventArgs e)
     {
         if (mode == GameMode.TwoPlayers)
         {
@@ -96,45 +111,101 @@ public partial class BlackjackWindow : Window
             {
                 currentPlayer = 2;
                 ResultText.Text = "Tura Gracza 2";
+                return;
             }
-            else
-            {
-                EndGame();
-            }
+
+            FinishGame();
         }
         else
         {
-            await BotPlay();
+            _ = BotPlay();
         }
     }
 
     private async Task BotPlay()
     {
-        ResultText.Text = "Bot gra...";
-
         int botScore = 0;
 
         while (botScore < 17)
         {
-            await Task.Delay(2000);
+            await Task.Delay(1000);
 
             var card = deck.Draw();
             botScore += card.Value;
 
-            BotText.Text = $"Bot: {botScore}";
+            OpponentText.Text = $"Bot: {botScore}";
+            AddCard(OpponentCardsPanel, card.ImagePath, ref opponentIndex);
+
+            UpdateCenter(card.ImagePath);
         }
 
-        if (playerScore > botScore && playerScore <= 33)
-            ResultText.Text = "WYGRA£EŒ";
-        else
-            ResultText.Text = "PRZEGRA£EŒ";
+        player2Score = botScore;
+        FinishGame();
     }
 
-    private void EndGame()
+    private void AddCard(ItemsControl panel, string path, ref int index)
     {
-        if (playerScore > player2Score && playerScore <= 33)
-            ResultText.Text = "Wygra³ Gracz 1";
+        if (!File.Exists(path))
+            return;
+
+        using var stream = File.OpenRead(path);
+        var bmp = new Bitmap(stream);
+
+        var img = new Image
+        {
+            Source = bmp,
+            Width = 150,
+            Height = 200
+        };
+
+        Canvas.SetLeft(img, index * offset);
+        Canvas.SetTop(img, 0);
+
+        panel.Items.Add(img);
+
+        index++;
+    }
+
+    private void UpdateCenter(string path)
+    {
+        if (File.Exists(path))
+        {
+            using var stream = File.OpenRead(path);
+            PlayerCardImage.Source = new Bitmap(stream);
+        }
+    }
+
+    private void FinishGame()
+    {
+        isGameOver = true;
+        HitButton.IsEnabled = false;
+
+        bool p1Bust = playerScore > 21;
+        bool p2Bust = player2Score > 21;
+
+        if (p1Bust && p2Bust)
+        {
+            ResultText.Text = "REMIS";
+            return;
+        }
+
+        if (p1Bust)
+        {
+            ResultText.Text = "WYGRA£ GRACZ 2";
+            return;
+        }
+
+        if (p2Bust)
+        {
+            ResultText.Text = "WYGRA£ GRACZ 1";
+            return;
+        }
+
+        if (playerScore > player2Score)
+            ResultText.Text = "WYGRA£ GRACZ 1";
+        else if (playerScore < player2Score)
+            ResultText.Text = "WYGRA£ GRACZ 2";
         else
-            ResultText.Text = "Wygra³ Gracz 2";
+            ResultText.Text = "REMIS";
     }
 }
