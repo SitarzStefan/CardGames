@@ -3,7 +3,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using System.IO;
 using System.Threading.Tasks;
-
+using System; // <-- Dodaj tê linijkê
 namespace CardGames;
 
 public partial class BlackjackWindow : Window
@@ -182,30 +182,43 @@ public partial class BlackjackWindow : Window
 
         bool p1Bust = playerScore > 21;
         bool p2Bust = player2Score > 21;
+        string finalResult = "";
 
-        if (p1Bust && p2Bust)
+        // 1. Logika ustalania napisu wyniku (ju¿ j¹ masz, dodajemy tylko przypisanie do zmiennej)
+        if (p1Bust && p2Bust) finalResult = "REMIS";
+        else if (p1Bust) finalResult = mode == GameMode.Bot ? "PORA¯KA Z BOTEM" : "WYGRA£ GRACZ 2";
+        else if (p2Bust) finalResult = mode == GameMode.Bot ? "ZWYCIÊSTWO Z BOTEM" : "WYGRA£ GRACZ 1";
+        else if (playerScore > player2Score) finalResult = "WYGRA£ GRACZ 1";
+        else if (playerScore < player2Score) finalResult = mode == GameMode.Bot ? "PORA¯KA Z BOTEM" : "WYGRA£ GRACZ 2";
+        else finalResult = "REMIS";
+
+        ResultText.Text = finalResult;
+
+        // 2. TUTEJ DODAJEMY ZAPIS DO HISTORII
+        SaveToHistory(finalResult);
+    }
+
+    // Nowa metoda pomocnicza, aby nie zaœmiecaæ FinishGame
+    private void SaveToHistory(string resultMessage)
+    {
+        try
         {
-            ResultText.Text = "REMIS";
-            return;
-        }
+            var history = new GameHistory
+            {
+                // Jeœli grasz z botem, zapisujemy "Gracz vs Bot", jeœli 2 graczy to "Gracz 1 vs Gracz 2"
+                PlayerName = mode == GameMode.Bot ? "Gracz vs Bot" : "Pojedynek 1v1",
+                GameName = "Blackjack",
+                Result = resultMessage,
+                Date = DateTime.Now.ToString("dd.MM.yyyy HH:mm")
+            };
 
-        if (p1Bust)
+            HistoryManager.SaveGame(history);
+        }
+        catch (Exception ex)
         {
-            ResultText.Text = "WYGRA£ GRACZ 2";
-            return;
+            // W razie b³êdu zapisu (np. brak uprawnieñ do pliku), 
+            // wypiszemy go w konsoli debugowania, ¿eby gra siê nie zawiesi³a
+            System.Diagnostics.Debug.WriteLine($"B³¹d zapisu historii: {ex.Message}");
         }
-
-        if (p2Bust)
-        {
-            ResultText.Text = "WYGRA£ GRACZ 1";
-            return;
-        }
-
-        if (playerScore > player2Score)
-            ResultText.Text = "WYGRA£ GRACZ 1";
-        else if (playerScore < player2Score)
-            ResultText.Text = "WYGRA£ GRACZ 2";
-        else
-            ResultText.Text = "REMIS";
     }
 }

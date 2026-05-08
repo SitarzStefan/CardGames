@@ -83,17 +83,53 @@ public partial class ColorGuessWindow : Window
         int currentVal = GetValue(currentCardFile!);
         int nextVal = GetValue(nextCardFile);
 
-        bool correct = (guessedHigher && nextVal >= currentVal) || (!guessedHigher && nextVal <= currentVal);
+        bool isTie = (nextVal == currentVal);
+        bool correct = false;
 
-        if (correct) score++;
+        if (isTie)
+        {
+            // Jeœli jest remis, gracz zawsze dostaje punkt (opcja przyjazna graczowi)
+            correct = true;
+        }
+        else if (guessedHigher && nextVal > currentVal)
+        {
+            correct = true;
+        }
+        else if (!guessedHigher && nextVal < currentVal)
+        {
+            correct = true;
+        }
+
+        // Obs³uga punktacji i komunikatów
+        if (isTie)
+        {
+            ResultText.Text = $"REMIS! ({currentVal} na {currentVal}). Dostajesz punkt!";
+            score++;
+        }
+        else if (correct)
+        {
+            ResultText.Text = "DOBRZE! ";
+            score++;
+        }
+        else
+        {
+            ResultText.Text = "LE! ";
+        }
+
+        // Dodanie szczegó³ów do tekstu wyniku
+        if (!isTie)
+        {
+            ResultText.Text += $"By³o: {currentVal}, Jest: {nextVal}";
+        }
+
         rounds++;
-
-        ResultText.Text = (correct ? "DOBRZE! " : "LE! ") + $"By³o: {currentVal}, jest: {nextVal}";
-
         currentCardFile = nextCardFile;
         UpdateUI(currentCardFile);
 
-        if (rounds >= MAX_ROUNDS) EndGame();
+        if (rounds >= MAX_ROUNDS)
+        {
+            EndGame();
+        }
     }
 
     private int GetValue(string fileName)

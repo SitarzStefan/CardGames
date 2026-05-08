@@ -28,7 +28,7 @@
                 Width="250"
                 Height="60"
                 Click="ThirdGame_Click"/>
-    <Button Content="Color Guess"
+    <Button Content="Historia Gier"
             Width="250"
             Height="60"
                 Click="ShowHistory_Click"/>
