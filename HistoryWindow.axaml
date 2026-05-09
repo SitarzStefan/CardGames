@@ -12,7 +12,7 @@
 
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="0,20,0,0">
             <Button Content="Zamknij" Width="120" Click="Close_Click"/>
-            <Button Content="Wyczysc historiê" Background="#E74C3C" Width="150" Click="Clear_Click"/>
+            <Button Content="Wyczysc historie" Background="#E74C3C" Width="150" Click="Clear_Click"/>
         </StackPanel>
 
         <ScrollViewer>
