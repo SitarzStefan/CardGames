@@ -3,7 +3,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using System.IO;
 using System.Threading.Tasks;
-using System; // <-- Dodaj tê linijkê
+
 namespace CardGames;
 
 public partial class BlackjackWindow : Window
@@ -18,8 +18,6 @@ public partial class BlackjackWindow : Window
     private int currentPlayer = 1;
 
     private bool isGameOver = false;
-
-    private double offset = 80;
 
     private int playerIndex = 0;
     private int opponentIndex = 0;
@@ -61,8 +59,9 @@ public partial class BlackjackWindow : Window
 
         HitButton.IsEnabled = true;
 
-        // ?? TYLKO TA ZMIANA
-        OpponentTitle.Text = mode == GameMode.Bot ? "BOT" : "GRACZ 2";
+        OpponentTitle.Text = mode == GameMode.Bot
+            ? "BOT"
+            : "GRACZ 2";
     }
 
     private void Hit_Click(object? sender, RoutedEventArgs e)
@@ -77,21 +76,39 @@ public partial class BlackjackWindow : Window
             if (currentPlayer == 1)
             {
                 playerScore += card.Value;
+
                 PlayerText.Text = $"Gracz 1: {playerScore}";
-                AddCard(PlayerCardsPanel, card.ImagePath, ref playerIndex);
+
+                AddCard(
+                    PlayerCardsPanel,
+                    card.ImagePath,
+                    ref playerIndex
+                );
             }
             else
             {
                 player2Score += card.Value;
+
                 OpponentText.Text = $"Gracz 2: {player2Score}";
-                AddCard(OpponentCardsPanel, card.ImagePath, ref opponentIndex);
+
+                AddCard(
+                    OpponentCardsPanel,
+                    card.ImagePath,
+                    ref opponentIndex
+                );
             }
         }
         else
         {
             playerScore += card.Value;
+
             PlayerText.Text = $"Gracz 1: {playerScore}";
-            AddCard(PlayerCardsPanel, card.ImagePath, ref playerIndex);
+
+            AddCard(
+                PlayerCardsPanel,
+                card.ImagePath,
+                ref playerIndex
+            );
         }
 
         UpdateCenter(card.ImagePath);
@@ -110,7 +127,9 @@ public partial class BlackjackWindow : Window
             if (currentPlayer == 1)
             {
                 currentPlayer = 2;
+
                 ResultText.Text = "Tura Gracza 2";
+
                 return;
             }
 
@@ -131,24 +150,35 @@ public partial class BlackjackWindow : Window
             await Task.Delay(1000);
 
             var card = deck.Draw();
+
             botScore += card.Value;
 
             OpponentText.Text = $"Bot: {botScore}";
-            AddCard(OpponentCardsPanel, card.ImagePath, ref opponentIndex);
+
+            AddCard(
+                OpponentCardsPanel,
+                card.ImagePath,
+                ref opponentIndex
+            );
 
             UpdateCenter(card.ImagePath);
         }
 
         player2Score = botScore;
+
         FinishGame();
     }
 
-    private void AddCard(ItemsControl panel, string path, ref int index)
+    private void AddCard(
+        ItemsControl panel,
+        string path,
+        ref int index)
     {
         if (!File.Exists(path))
             return;
 
         using var stream = File.OpenRead(path);
+
         var bmp = new Bitmap(stream);
 
         var img = new Image
@@ -158,12 +188,42 @@ public partial class BlackjackWindow : Window
             Height = 200
         };
 
-        Canvas.SetLeft(img, index * offset);
-        Canvas.SetTop(img, 0);
-
         panel.Items.Add(img);
 
         index++;
+
+        double availableWidth = 180;
+
+        double cardWidth = 150;
+
+        double offset;
+
+        if (index <= 1)
+        {
+            offset = 0;
+        }
+        else
+        {
+            offset =
+                (availableWidth - cardWidth)
+                / (index - 1);
+
+            if (offset < 20)
+                offset = 20;
+        }
+
+        for (int i = 0; i < panel.Items.Count; i++)
+        {
+            if (panel.Items[i] is Image cardImage)
+            {
+                Canvas.SetLeft(
+                    cardImage,
+                    i * offset
+                );
+
+                Canvas.SetTop(cardImage, 0);
+            }
+        }
     }
 
     private void UpdateCenter(string path)
@@ -171,54 +231,50 @@ public partial class BlackjackWindow : Window
         if (File.Exists(path))
         {
             using var stream = File.OpenRead(path);
-            PlayerCardImage.Source = new Bitmap(stream);
+
+            PlayerCardImage.Source =
+                new Bitmap(stream);
         }
     }
 
     private void FinishGame()
     {
         isGameOver = true;
+
         HitButton.IsEnabled = false;
 
         bool p1Bust = playerScore > 21;
         bool p2Bust = player2Score > 21;
-        string finalResult = "";
 
-        // 1. Logika ustalania napisu wyniku (ju¿ j¹ masz, dodajemy tylko przypisanie do zmiennej)
-        if (p1Bust && p2Bust) finalResult = "REMIS";
-        else if (p1Bust) finalResult = mode == GameMode.Bot ? "PORA¯KA Z BOTEM" : "WYGRA£ GRACZ 2";
-        else if (p2Bust) finalResult = mode == GameMode.Bot ? "ZWYCIÊSTWO Z BOTEM" : "WYGRA£ GRACZ 1";
-        else if (playerScore > player2Score) finalResult = "WYGRA£ GRACZ 1";
-        else if (playerScore < player2Score) finalResult = mode == GameMode.Bot ? "PORA¯KA Z BOTEM" : "WYGRA£ GRACZ 2";
-        else finalResult = "REMIS";
-
-        ResultText.Text = finalResult;
-
-        // 2. TUTEJ DODAJEMY ZAPIS DO HISTORII
-        SaveToHistory(finalResult);
-    }
-
-    // Nowa metoda pomocnicza, aby nie zaœmiecaæ FinishGame
-    private void SaveToHistory(string resultMessage)
-    {
-        try
+        if (p1Bust && p2Bust)
         {
-            var history = new GameHistory
-            {
-                // Jeœli grasz z botem, zapisujemy "Gracz vs Bot", jeœli 2 graczy to "Gracz 1 vs Gracz 2"
-                PlayerName = mode == GameMode.Bot ? "Gracz vs Bot" : "Pojedynek 1v1",
-                GameName = "Blackjack",
-                Result = resultMessage,
-                Date = DateTime.Now.ToString("dd.MM.yyyy HH:mm")
-            };
-
-            HistoryManager.SaveGame(history);
+            ResultText.Text = "REMIS";
+            return;
         }
-        catch (Exception ex)
+
+        if (p1Bust)
         {
-            // W razie b³êdu zapisu (np. brak uprawnieñ do pliku), 
-            // wypiszemy go w konsoli debugowania, ¿eby gra siê nie zawiesi³a
-            System.Diagnostics.Debug.WriteLine($"B³¹d zapisu historii: {ex.Message}");
+            ResultText.Text = "WYGRA£ GRACZ 2";
+            return;
+        }
+
+        if (p2Bust)
+        {
+            ResultText.Text = "WYGRA£ GRACZ 1";
+            return;
+        }
+
+        if (playerScore > player2Score)
+        {
+            ResultText.Text = "WYGRA£ GRACZ 1";
+        }
+        else if (playerScore < player2Score)
+        {
+            ResultText.Text = "WYGRA£ GRACZ 2";
+        }
+        else
+        {
+            ResultText.Text = "REMIS";
         }
     }
 }

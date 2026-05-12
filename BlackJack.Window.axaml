@@ -5,9 +5,9 @@
         Height="500"
         Title="Blackjack">
 
-    <Grid ColumnDefinitions="200,*,200">
+    <Grid ColumnDefinitions="350,*,350">
 
-        <!-- GRACZ 1 -->
+       
         <StackPanel Grid.Column="0">
 
             <TextBlock Text="GRACZ 1"
@@ -23,7 +23,7 @@
 
         </StackPanel>
 
-        <!-- ŒRODEK -->
+       
         <StackPanel Grid.Column="1"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
@@ -61,7 +61,7 @@
 
         </StackPanel>
 
-        <!-- PRAWA STRONA -->
+       
         <StackPanel Grid.Column="2">
 
             <TextBlock Name="OpponentTitle"
