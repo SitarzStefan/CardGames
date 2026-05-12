@@ -19,8 +19,6 @@ public partial class BlackjackWindow : Window
 
     private bool isGameOver = false;
 
-    private double offset = 80;
-
     private int playerIndex = 0;
     private int opponentIndex = 0;
 
@@ -61,8 +59,9 @@ public partial class BlackjackWindow : Window
 
         HitButton.IsEnabled = true;
 
-        // ?? TYLKO TA ZMIANA
-        OpponentTitle.Text = mode == GameMode.Bot ? "BOT" : "GRACZ 2";
+        OpponentTitle.Text = mode == GameMode.Bot
+            ? "BOT"
+            : "GRACZ 2";
     }
 
     private void Hit_Click(object? sender, RoutedEventArgs e)
@@ -77,21 +76,39 @@ public partial class BlackjackWindow : Window
             if (currentPlayer == 1)
             {
                 playerScore += card.Value;
+
                 PlayerText.Text = $"Gracz 1: {playerScore}";
-                AddCard(PlayerCardsPanel, card.ImagePath, ref playerIndex);
+
+                AddCard(
+                    PlayerCardsPanel,
+                    card.ImagePath,
+                    ref playerIndex
+                );
             }
             else
             {
                 player2Score += card.Value;
+
                 OpponentText.Text = $"Gracz 2: {player2Score}";
-                AddCard(OpponentCardsPanel, card.ImagePath, ref opponentIndex);
+
+                AddCard(
+                    OpponentCardsPanel,
+                    card.ImagePath,
+                    ref opponentIndex
+                );
             }
         }
         else
         {
             playerScore += card.Value;
+
             PlayerText.Text = $"Gracz 1: {playerScore}";
-            AddCard(PlayerCardsPanel, card.ImagePath, ref playerIndex);
+
+            AddCard(
+                PlayerCardsPanel,
+                card.ImagePath,
+                ref playerIndex
+            );
         }
 
         UpdateCenter(card.ImagePath);
@@ -110,7 +127,9 @@ public partial class BlackjackWindow : Window
             if (currentPlayer == 1)
             {
                 currentPlayer = 2;
+
                 ResultText.Text = "Tura Gracza 2";
+
                 return;
             }
 
@@ -131,24 +150,35 @@ public partial class BlackjackWindow : Window
             await Task.Delay(1000);
 
             var card = deck.Draw();
+
             botScore += card.Value;
 
             OpponentText.Text = $"Bot: {botScore}";
-            AddCard(OpponentCardsPanel, card.ImagePath, ref opponentIndex);
+
+            AddCard(
+                OpponentCardsPanel,
+                card.ImagePath,
+                ref opponentIndex
+            );
 
             UpdateCenter(card.ImagePath);
         }
 
         player2Score = botScore;
+
         FinishGame();
     }
 
-    private void AddCard(ItemsControl panel, string path, ref int index)
+    private void AddCard(
+        ItemsControl panel,
+        string path,
+        ref int index)
     {
         if (!File.Exists(path))
             return;
 
         using var stream = File.OpenRead(path);
+
         var bmp = new Bitmap(stream);
 
         var img = new Image
@@ -158,12 +188,42 @@ public partial class BlackjackWindow : Window
             Height = 200
         };
 
-        Canvas.SetLeft(img, index * offset);
-        Canvas.SetTop(img, 0);
-
         panel.Items.Add(img);
 
         index++;
+
+        double availableWidth = 180;
+
+        double cardWidth = 150;
+
+        double offset;
+
+        if (index <= 1)
+        {
+            offset = 0;
+        }
+        else
+        {
+            offset =
+                (availableWidth - cardWidth)
+                / (index - 1);
+
+            if (offset < 20)
+                offset = 20;
+        }
+
+        for (int i = 0; i < panel.Items.Count; i++)
+        {
+            if (panel.Items[i] is Image cardImage)
+            {
+                Canvas.SetLeft(
+                    cardImage,
+                    i * offset
+                );
+
+                Canvas.SetTop(cardImage, 0);
+            }
+        }
     }
 
     private void UpdateCenter(string path)
@@ -171,13 +231,16 @@ public partial class BlackjackWindow : Window
         if (File.Exists(path))
         {
             using var stream = File.OpenRead(path);
-            PlayerCardImage.Source = new Bitmap(stream);
+
+            PlayerCardImage.Source =
+                new Bitmap(stream);
         }
     }
 
     private void FinishGame()
     {
         isGameOver = true;
+
         HitButton.IsEnabled = false;
 
         bool p1Bust = playerScore > 21;
@@ -202,10 +265,16 @@ public partial class BlackjackWindow : Window
         }
 
         if (playerScore > player2Score)
+        {
             ResultText.Text = "WYGRA£ GRACZ 1";
+        }
         else if (playerScore < player2Score)
+        {
             ResultText.Text = "WYGRA£ GRACZ 2";
+        }
         else
+        {
             ResultText.Text = "REMIS";
+        }
     }
 }
