@@ -3,6 +3,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using System.IO;
 using System.Threading.Tasks;
+using System;
 
 namespace CardGames;
 
@@ -240,41 +241,45 @@ public partial class BlackjackWindow : Window
     private void FinishGame()
     {
         isGameOver = true;
-
         HitButton.IsEnabled = false;
 
         bool p1Bust = playerScore > 21;
         bool p2Bust = player2Score > 21;
+        string finalResult = "";
 
-        if (p1Bust && p2Bust)
-        {
-            ResultText.Text = "REMIS";
-            return;
-        }
+        // Logika ustalania wyniku
+        if (p1Bust && p2Bust) finalResult = "REMIS (Obaj furura)";
+        else if (p1Bust) finalResult = mode == GameMode.Bot ? "PRZEGRANA Z BOTEM" : "WYGRA£ GRACZ 2";
+        else if (p2Bust) finalResult = mode == GameMode.Bot ? "ZWYCIÊSTWO Z BOTEM" : "WYGRA£ GRACZ 1";
+        else if (playerScore > player2Score) finalResult = "WYGRA£ GRACZ 1";
+        else if (playerScore < player2Score) finalResult = mode == GameMode.Bot ? "PRZEGRANA Z BOTEM" : "WYGRA£ GRACZ 2";
+        else finalResult = "REMIS";
 
-        if (p1Bust)
-        {
-            ResultText.Text = "WYGRA£ GRACZ 2";
-            return;
-        }
+        ResultText.Text = finalResult;
 
-        if (p2Bust)
-        {
-            ResultText.Text = "WYGRA£ GRACZ 1";
-            return;
-        }
+        // --- TUTAJ WYWO£UJEMY ZAPIS DO HISTORII ---
+        SaveToHistory(finalResult);
+    }
 
-        if (playerScore > player2Score)
+    private void SaveToHistory(string resultMessage)
+    {
+        try
         {
-            ResultText.Text = "WYGRA£ GRACZ 1";
+            var historyEntry = new GameHistory
+            {
+                // Ustawiamy nazwê graczy w zale¿noœci od trybu
+                PlayerName = mode == GameMode.Bot ? "Gracz vs Bot" : "Pojedynek 1v1",
+                GameName = "Blackjack",
+                Result = resultMessage,
+                Date = DateTime.Now.ToString("dd.MM.yyyy HH:mm")
+            };
+
+            HistoryManager.SaveGame(historyEntry);
         }
-        else if (playerScore < player2Score)
+        catch (Exception ex)
         {
-            ResultText.Text = "WYGRA£ GRACZ 2";
-        }
-        else
-        {
-            ResultText.Text = "REMIS";
+            // Jeœli coœ pójdzie nie tak z plikiem, nie "wywali" nam gry
+            System.Diagnostics.Debug.WriteLine($"B³¹d historii: {ex.Message}");
         }
     }
 }
