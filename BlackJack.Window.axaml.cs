@@ -10,7 +10,7 @@ namespace CardGames;
 public partial class BlackjackWindow : Window
 {
     private Deck deck = null!;
-
+    private bool historySaved = false;
     private int playerScore = 0;
     private int player2Score = 0;
 
@@ -39,6 +39,7 @@ public partial class BlackjackWindow : Window
 
     private void StartGame()
     {
+
         deck = new Deck();
         deck.Shuffle();
 
@@ -63,6 +64,7 @@ public partial class BlackjackWindow : Window
         OpponentTitle.Text = mode == GameMode.Bot
             ? "BOT"
             : "GRACZ 2";
+
     }
 
     private void Hit_Click(object? sender, RoutedEventArgs e)
@@ -123,14 +125,15 @@ public partial class BlackjackWindow : Window
 
     private void Stop_Click(object? sender, RoutedEventArgs e)
     {
+        // FIX: Jeœli gra ju¿ siê skoñczy³a, nie rób nic
+        if (isGameOver) return;
+
         if (mode == GameMode.TwoPlayers)
         {
             if (currentPlayer == 1)
             {
                 currentPlayer = 2;
-
                 ResultText.Text = "Tura Gracza 2";
-
                 return;
             }
 
@@ -138,6 +141,13 @@ public partial class BlackjackWindow : Window
         }
         else
         {
+            // Wy³¹czamy przyciski od razu, ¿eby gracz nie móg³ klikaæ podczas ruchu bota
+            isGameOver = true;
+            HitButton.IsEnabled = false;
+
+            // Jeœli Twój przycisk STOP w XAML ma nazwê (np. StopButton), te¿ go wy³¹cz:
+            // StopButton.IsEnabled = false;
+
             _ = BotPlay();
         }
     }
@@ -240,25 +250,68 @@ public partial class BlackjackWindow : Window
 
     private void FinishGame()
     {
+        // 1. Zabezpieczenie: Jeœli historia zosta³a ju¿ zapisana dla tej gry, nie rób nic wiêcej
+        if (historySaved) return;
+
+        // 2. Blokada stanu gry i przycisków
         isGameOver = true;
         HitButton.IsEnabled = false;
+        // Jeœli Twój przycisk "Stop" w pliku .axaml ma Name="StopButton", odkomentuj poni¿sz¹ liniê:
+        // StopButton.IsEnabled = false;
 
+        // 3. Logika ustalania wyniku
         bool p1Bust = playerScore > 21;
         bool p2Bust = player2Score > 21;
         string finalResult = "";
 
-        // Logika ustalania wyniku
-        if (p1Bust && p2Bust) finalResult = "REMIS (Obaj furura)";
-        else if (p1Bust) finalResult = mode == GameMode.Bot ? "PRZEGRANA Z BOTEM" : "WYGRA£ GRACZ 2";
-        else if (p2Bust) finalResult = mode == GameMode.Bot ? "ZWYCIÊSTWO Z BOTEM" : "WYGRA£ GRACZ 1";
-        else if (playerScore > player2Score) finalResult = "WYGRA£ GRACZ 1";
-        else if (playerScore < player2Score) finalResult = mode == GameMode.Bot ? "PRZEGRANA Z BOTEM" : "WYGRA£ GRACZ 2";
-        else finalResult = "REMIS";
+        if (p1Bust && p2Bust)
+        {
+            finalResult = "REMIS (Obaj fura)";
+        }
+        else if (p1Bust)
+        {
+            finalResult = mode == GameMode.Bot ? "PRZEGRANA Z BOTEM" : "WYGRA£ GRACZ 2";
+        }
+        else if (p2Bust)
+        {
+            finalResult = mode == GameMode.Bot ? "ZWYCIÊSTWO Z BOTEM" : "WYGRA£ GRACZ 1";
+        }
+        else if (playerScore > player2Score)
+        {
+            finalResult = "WYGRA£ GRACZ 1";
+        }
+        else if (playerScore < player2Score)
+        {
+            finalResult = mode == GameMode.Bot ? "PRZEGRANA Z BOTEM" : "WYGRA£ GRACZ 2";
+        }
+        else
+        {
+            finalResult = "REMIS";
+        }
 
+        // 4. Wyœwietlenie wyniku w interfejsie
         ResultText.Text = finalResult;
 
-        // --- TUTAJ WYWO£UJEMY ZAPIS DO HISTORII ---
-        SaveToHistory(finalResult);
+        // 5. Zapis do historii (tylko raz!)
+        try
+        {
+            var historyEntry = new GameHistory
+            {
+                PlayerName = mode == GameMode.Bot ? "Gracz vs Bot" : "Pojedynek 1v1",
+                GameName = "Blackjack",
+                Result = finalResult,
+                Date = DateTime.Now.ToString("dd.MM.yyyy HH:mm")
+            };
+
+            HistoryManager.SaveGame(historyEntry);
+
+            // Ustawiamy flagê, ¿eby kolejne (spóŸnione) wywo³ania tej metody nic nie zapisa³y
+            historySaved = true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"B³¹d zapisu historii: {ex.Message}");
+        }
     }
 
     private void SaveToHistory(string resultMessage)
